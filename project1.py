@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import json
 
-# Initialize dataframe
+# Initialize the dataset and create a dataframe
 data =  {
             'Outlook':['Sunny','Sunny','Overcast','Rain','Rain','Rain','Overcast','Sunny','Sunny','Rain','Sunny','Overcast','Overcast','Rain'],
             'Temperature':['Hot','Hot','Hot','Mild','Cool','Cool','Cool','Mild','Cool','Mild','Mild','Mild','Hot','Mild'],
@@ -22,18 +22,25 @@ class Node:
         self.name = ''
         self.by = ''
         
+    # Add a child to the root
     def addChild(self, node):
         self.childs.append(node)
 
-    def toJSON(root):
+    # Convert the tree to Dict
+    def toDict(root):
         if root.value != '':
             return root.value
+
         else:
             results = []
             for child in root.childs:
-                value = child.toJSON()
+                value = Node.toDict(child)
                 results.append({child.by: value})
             return {root.name: results}
+        
+    # Convert the tree to JSON
+    def toJSON(root):
+        return json.dumps(Node.toDict(root), indent=2)
         
 # Calculate the entropy of a dataset
 def entropy1(data):
@@ -84,9 +91,11 @@ def decisionTree(data, root):
     if ncol > 1:
         colNames = data.columns
 
+    # If the dataset is empty, return 'Unclassified'.
     if nrow == 0 or ncol == 0:
         root.value = 'Unclassified'
 
+    # If there is only one column, return the element occured most the often.
     elif ncol == 1:
         uniqueVals = pd.unique(data)
         nmax = 0
@@ -100,6 +109,7 @@ def decisionTree(data, root):
 
         root.value = maxVal
 
+    # If the data set is pure, return the value.
     elif entropy1(data) == 0:
         root.value = data[colNames[ncol-1]][data.index[0]]
 
@@ -126,7 +136,8 @@ def decisionTree(data, root):
             
     return root
 
+# Create a decision tree of the dataset
 root = Node()
 root = decisionTree(df, root)
 print("\nDecision Tree:")
-print(json.dumps(root.toJSON(), indent=2))
+print(root.toJSON())
